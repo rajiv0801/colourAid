@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColourAid - Adaptive Color Vision Assessment & Accessibility Tool</title>
+    
+    <!-- SEO Tags -->
+    <meta name="description" content="ColourAid is a comprehensive web application designed to assess color vision deficiencies (like Protanopia, Deuteranopia, and Tritanopia) and provide adaptive color correction for images and UIs.">
+    <meta name="keywords" content="colorblind, color blindness test, ishihara test, farnsworth D-15, color vision deficiency, protan, deutan, tritan, daltonization, accessibility">
+    <meta name="author" content="ColourAid">
+    
+    <!-- Open Graph for Social Media -->
+    <meta property="og:title" content="ColourAid - Adaptive Color Assessment">
+    <meta property="og:description" content="Assess your color vision and automatically adapt images and UIs to your specific profile.">
+    <meta property="og:type" content="website">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo">
+                <span class="icon">👁️</span>
+                <h1>ColourAid</h1>
+            </div> 
+            <div class="nav-links">
+                <button class="nav-btn active" data-target="profile-section">Vision Assessment</button>
+                <button class="nav-btn" data-target="accessibility-section">Global Themes</button>
+                <button class="nav-btn" data-target="image-section">Image Correction</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Color Profile Section (Multi-step Assessment) -->
+            <section id="profile-section" class="section active">
+                <header class="section-header">
+                    <h2>Color Vision Assessment</h2>
+                    <p>Complete this test to analyze your color perception.</p>
+                </header>
+
+                <div class="card glass">
+                    <!-- Step 1: Start Panel -->
+                    <div id="step-start" class="test-step">
+                        <h3>Welcome to the Vision Test</h3>
+                        <p style="margin: 1rem 0;">This test will evaluate your color perception using a screening test, followed by an arrangement test if necessary.</p>
+                        <div class="warning-box">
+                            <span class="lock-icon" style="font-size: 1.5rem; margin-bottom: 0;">💡</span>
+                            <p>For accurate results, please ensure your screen brightness is turned up and you are in a well-lit room without glaring reflections.</p>
+                        </div>
+                        <button class="btn primary-btn" id="start-test-btn" style="margin-top: 1.5rem;">Start Test</button>
+                    </div>
+
+                    <!-- Step 2: Ishihara Screening -->
+                    <div id="step-ishihara" class="test-step hidden">
+                        <h3>Screening Test (Plate <span id="plate-number">1</span> of 3)</h3>
+                        <p style="margin-top: 0.5rem; color: var(--text-muted)">What number do you see in the circle below?</p>
+                        
+                        <div class="ishihara-container">
+                            <div class="ishihara-plate" id="ishihara-plate" style="background: radial-gradient(circle, #ffaaaa, #ff7777);">
+                                <span id="ishihara-number" style="color: #66aa66;">12</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ishihara-input-group">
+                            <input type="number" id="ishihara-input" class="modern-input" placeholder="Enter number..." autofocus>
+                            <button class="btn primary-btn" id="next-plate-btn">Next</button>
+                        </div>
+                        <button class="btn secondary-btn" id="skip-ishihara-btn" style="margin-top: 1rem;">I don't see anything</button>
+                    </div>
+
+                    <!-- Step 3: Farnsworth D-15 -->
+                    <div id="step-d15" class="test-step hidden">
+                        <h3>Color Arrangement Test</h3>
+                        <p style="margin-top: 0.5rem; color: var(--text-muted)">Arrange the color caps in order according to hue, starting from the fixed reference cap on the left.</p>
+                        
+                        <div class="test-container" style="margin-top: 1.5rem;">
+                            <div class="reference-cap-container">
+                                <div class="cap reference-cap" id="ref-cap" style="background-color: #1c7cab;" title="Reference Cap"></div>
+                                <span class="cap-label">Start</span>
+                            </div>
+                            <div class="sortable-caps" id="sortable-caps">
+                                <!-- Caps will be generated by JS -->
+                            </div>
+                        </div>
+                        <div class="actions center-actions">
+                            <button class="btn primary-btn" id="evaluate-test-btn">Evaluate Results</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 & 5 & 6: Results -->
+                    <div id="step-results" class="test-step hidden">
+                        <h3>Assessment Results</h3>
+                        <div class="result-card" style="margin-top: 1rem;">
+                            <h4 id="deficiency-type">Analyzing...</h4>
+                            <p id="deficiency-desc">Please complete the test above.</p>
+                            
+                            <div id="severity-container" class="hidden">
+                                <p style="font-size: 0.9rem; margin-top: 1rem; color: var(--text-muted);">Estimated Severity</p>
+                                <div id="severity-meter" class="severity-meter">
+                                    <div class="meter-fill" id="meter-fill"></div>
+                                </div>
+                            </div>
+                            
+                            <div id="error-axis-container" class="hidden" style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                                <p style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-muted);">Error Axis Plot</p>
+                                <canvas id="error-axis-canvas" width="300" height="300" style="background: rgba(0,0,0,0.2); border-radius: 50%; border: 1px solid var(--glass-border);"></canvas>
+                            </div>
+                            
+                            <div class="medical-disclaimer" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border); font-size: 0.85rem; color: var(--text-muted);">
+                                <p><strong>Note:</strong> This is a supplementary online tool and not a definitive clinical diagnosis. Please consult with an optometrist or ophthalmologist for professional medical confirmation.</p>
+                            </div>
+                        </div>
+                        <div class="actions center-actions" style="margin-top: 1.5rem;">
+                            <button class="btn secondary-btn" id="reset-test-btn">Retake Assessment</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Accessibility Controls Section -->
+            <section id="accessibility-section" class="section hidden">
+                <header class="section-header">
+                    <h2>Accessibility Controls</h2>
+                    <p>Global website color adjustments based on your color profile.</p>
+                </header>
+
+                <div class="card glass upload-card" id="accessibility-card">
+                    <!-- Locked State -->
+                    <div id="upload-locked-state" class="locked-state">
+                        <div class="lock-icon">🔒</div>
+                        <h3>Feature Locked</h3>
+                        <p id="lock-message">Please take the Vision Assessment first to unlock adaptive themes.</p>
+                        <button class="btn primary-btn" onclick="document.querySelector('[data-target=\'profile-section\']').click()">Go to Assessment</button>
+                    </div>
+
+                    <!-- Active Controls State -->
+                    <div id="upload-active-state" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                        <div class="warning-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #34d399; width: 100%; max-width: 600px;">
+                            <span class="lock-icon" style="font-size: 1.5rem; margin-bottom: 0;">✨</span>
+                            <p id="active-theme-desc">An adaptive color theme has been automatically applied across the interface based on your test results.</p>
+                        </div>
+
+                        <div style="width: 100%; max-width: 600px; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+                            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Manual Override</h3>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="radio" name="theme-override" value="default" checked id="theme-default"> Standard Theme
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="radio" name="theme-override" value="protan_deutan" id="theme-red-green"> Red-Green Adaptation (High Contrast)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="radio" name="theme-override" value="tritan" id="theme-blue-yellow"> Blue-Yellow Adaptation
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual Demo Area -->
+                        <div style="width: 100%; max-width: 600px; margin-top: 1rem;">
+                            <h3>Theme Preview</h3>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <div class="demo-box" style="flex: 1; height: 100px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); color: white;">Primary</div>
+                                <div class="demo-box" style="flex: 1; height: 100px; background: var(--danger); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); color: white;">Danger (Warning)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Adaptive Image Correction Section -->
+            <section id="image-section" class="section hidden">
+                <header class="section-header">
+                    <h2>Image Correction</h2>
+                    <p>Upload an image to see how it looks to your specific color vision, and let us dynamically correct it to enhance distinguishability.</p>
+                </header>
+
+                <div class="card glass upload-card" id="image-card">
+                    <!-- Locked State -->
+                    <div id="image-locked-state" class="locked-state">
+                        <div class="lock-icon">🔒</div>
+                        <h3>Feature Locked</h3>
+                        <p id="image-lock-message">Please take the Vision Assessment first to unlock adaptive image correction.</p>
+                        <button class="btn primary-btn" onclick="document.querySelector('[data-target=\'profile-section\']').click()">Go to Assessment</button>
+                    </div>
+
+                    <!-- Active Upload State -->
+                    <div id="image-active-state" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                        <div id="drop-zone" class="drop-zone">
+                            <div class="upload-icon">📁</div>
+                            <p>Drag & Drop your image here or</p>
+                            <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp" hidden>
+                            <button class="btn secondary-btn" id="browse-btn">Browse Files</button>
+                        </div>
+                        
+                        <div id="preview-container" class="preview-container hidden" style="width: 100%;">
+                            <h3 style="text-align: center; margin-bottom: 1rem;">Image Comparison <span id="processing-status" style="font-size: 0.8rem; font-weight: normal; color: var(--primary); margin-left: 1rem;"></span></h3>
+                            
+                            <div class="view-toggles" style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+                                <button class="btn view-btn active" data-view="original">Original View</button>
+                                <button class="btn view-btn" data-view="simulated">Simulated Deficiency</button>
+                                <button class="btn view-btn" data-view="corrected" style="background: var(--primary);">Corrected View</button>
+                            </div>
+
+                            <div class="canvas-wrapper" style="display: flex; justify-content: center; width: 100%; overflow: hidden; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3);">
+                                <canvas id="image-canvas" style="max-width: 100%; height: auto; display: block;"></canvas>
+                            </div>
+
+                            <div class="actions" style="justify-content: center; margin-top: 1.5rem;">
+                                <button class="btn danger-btn" id="clear-btn">Upload New Image</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
